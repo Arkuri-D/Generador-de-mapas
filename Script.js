@@ -191,7 +191,7 @@ function loadAllImages() {
         for (let col = 0; col < mapSizeColumns; col++) {
             console.log(`Esta es la iteración número: ${index} **************************************`);
             const hexTile = document.createElement('div');
-            hexTile.className = 'hex-tile';
+            hexTile.className = 'hextile';
 
             findValidTilesAndUpdatePattern();
             const randomValidTile = validTiles[Math.floor(Math.random() * validTiles.length)];
@@ -249,6 +249,16 @@ function loadAllImages() {
             console.log(modifiedTilesArray);
             
             index++;
+
+            // Después de generar el contenido dentro del contenedor
+const contenido = document.getElementById('map-container');
+const contenidoAncho = contenido.scrollWidth;
+const contenidoAltura = contenido.scrollHeight;
+
+// Establecer el ancho y alto del contenedor para que coincida con el contenido
+contenido.style.width = `${contenidoAncho}px`;
+contenido.style.height = `${contenidoAltura}px`;
+contenido.style.paddingBottom = '50px';
         }
     }
 }
@@ -322,21 +332,21 @@ function generar() {
 }
 
 document.getElementById("download-btn").addEventListener("click", function() {
-var element = document.getElementById("map-container");
-html2canvas(element, {
-    onrendered: function(canvas) {
-    // Convertir el lienzo a una URL de datos
-    var imageData = canvas.toDataURL("image/png");
-    
-    // Crear un enlace temporal para la descarga
-    var downloadLink = document.createElement("a");
-    downloadLink.href = imageData;
-    downloadLink.download = "mapa.png"; // Nombre del archivo de descarga
-    
-    // Hacer clic en el enlace para descargar la imagen
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    }
-});
+    var element = document.getElementById("map-container");
+    html2canvas(element, {
+        onrendered: function(canvas) {
+        // Convertir el lienzo a una URL de datos
+        var imageData = canvas.toDataURL("image/png");
+        
+        // Crear un enlace temporal para la descarga
+        var downloadLink = document.createElement("a");
+        downloadLink.href = imageData;
+        downloadLink.download = "mapa.png"; // Nombre del archivo de descarga
+        
+        // Hacer clic en el enlace para descargar la imagen
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        }
+    });
 });
