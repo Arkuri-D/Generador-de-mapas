@@ -149,7 +149,7 @@ function matchesPattern(tile, pattern) {
     return true;
 }
 
-const patternToMatch = [0, 'x', 'x', 'x', 0, 0];
+const patternToMatch = [0 , 'x', 'x', 'x', 0, 2];
 const validTiles = [];
 
 function findValidTilesAndUpdatePattern() {
@@ -180,8 +180,13 @@ const generateButton = document.getElementById('generate-button');
 generateButton.addEventListener('click', generar);
 
 const maxWidth = 350; // Ancho máximo para las imágenes
-const mapSizeColumns = 6; // Cambia según el número de columnas deseado
-const mapSizeRows = mapSizeColumns / 2; // La mitad de filas
+let mapSizeColumns = 6; // Cambia según el número de columnas deseado
+// Cambia mapSizeRows a una función que calcula la mitad de mapSizeColumns
+function calculateMapSizeRows() {
+    return mapSizeColumns / 2;
+}
+// Utiliza calculateMapSizeRows() para obtener el número de filas en lugar de una constante
+let mapSizeRows = calculateMapSizeRows();
 const modifiedTilesArray = []; // Array para almacenar los objetos modifiedTile
 
 function loadAllImages() {
@@ -321,7 +326,7 @@ function generar() {
         // Si el contador es 1, restablecer todos los valores y luego llamar a loadAllImages
         modifiedTilesArray.length = 0; // Vacía el array modifiedTilesArray sin asignar un nuevo array
         mapContainer.innerHTML = ''; // Borra todo el contenido dentro de mapContainer
-        patternToMatch.splice(0, patternToMatch.length, 0, 'x', 'x', 'x', 0, 0);
+        patternToMatch.splice(0, patternToMatch.length, 0 , 'x', 'x', 'x', 0 , 2);
         // Llama a loadAllImages después de restablecer los valores
         loadAllImages();
     } else {
@@ -349,4 +354,23 @@ document.getElementById("download-btn").addEventListener("click", function() {
         document.body.removeChild(downloadLink);
         }
     });
+});
+const smallButton = document.getElementById('small-btn');
+const mediumButton = document.getElementById('medium-btn');
+const largeButton = document.getElementById('large-btn');
+
+// Asignar eventos de clic a los botones
+smallButton.addEventListener('click', function() {
+    mapSizeColumns = 4;
+    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
+});
+
+mediumButton.addEventListener('click', function() {
+    mapSizeColumns = 6;
+    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
+});
+
+largeButton.addEventListener('click', function() {
+    mapSizeColumns = 8;
+    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
 });
