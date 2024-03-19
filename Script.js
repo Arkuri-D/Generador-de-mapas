@@ -1,4 +1,9 @@
-// script.js
+// INDICE
+//7 a 120 constantes y variables
+// 122 a 167 funcionalidad de botones
+//169 a 294 funciones auxiliares
+//296 a 309 funcion generar
+//311 a 388 funcion cargar imagenes
 const tileSet = [
     { nombre: '000000a', set: [0, 0, 0, 0, 0, 0], clase: 'Cave' },
     { nombre: '100000a', set: [1, 0, 0, 0, 0, 0], clase: 'Cave' },
@@ -94,42 +99,74 @@ const tileSet = [
     { nombre: '222222a', set: [2, 2, 2, 2, 2, 2], clase: 'Cave' }
 ];
 
+let contador = 0; // Definir un contador global inicializado en 0
 
-function checkAndShiftTile(tile, pattern, validTiles) {
-    const maxShifts = 5;
+const mapContainer = document.getElementById('map-container');
+const generateButton = document.getElementById('generate-button');
+const smallButton = document.getElementById('small-btn');
+const mediumButton = document.getElementById('medium-btn');
+const largeButton = document.getElementById('large-btn');
 
-    for (let shift = 0; shift <= maxShifts; shift++) {
-        const shiftedTile = shiftArray(tile.set, shift);
-
-        // Verificar si el tile original cumple con el patrón
-        if (matchesPattern(shiftedTile, pattern)) {
-            validTiles.push({
-                tile: tile.nombre,
-                shifts: shift,
-                shiftedTile: shiftedTile,
-                mirror: 0 // No es un espejo
-            });
-        }
-        
-        // Crear el tile espejo solo si no se han encontrado tiles válidos hasta el momento
-    if (validTiles.length === 0) {
-    console.log("Creando tiles espejo"); // Agregar un console log para mostrar cuando se crea el tile espejo
-    const mirroredSet = shiftArray([...tile.set].reverse(), shift);
-
-            // Verificar si el tile espejo cumple con el patrón
-            if (matchesPattern(mirroredSet, pattern)) {
-                validTiles.push({
-                    tile: tile.nombre,
-                    shifts: shift,
-                    shiftedTile: mirroredSet,
-                    mirror: 1 // Es un espejo
-                });
-            }
-        }
-    }
+const patternToMatch = [0 , 'x', 'x', 'x', 0, 2];
+const validTiles = [];
+const maxWidth = 350; // Ancho máximo para las imágenes
+let mapSizeColumns = 6; // Cambia según el número de columnas deseado
+function calculateMapSizeRows() {
+    return mapSizeColumns / 2;
 }
+let mapSizeRows = calculateMapSizeRows();
+const modifiedTilesArray = []; // Array para almacenar los objetos modifiedTile
+const info = document.getElementById('info');
+const insideInfo = document.getElementById('insideinfo');
 
-function shiftArray(arr, positions) {
+info.addEventListener('mouseover', () => {
+    insideInfo.style.display = 'block';
+});
+info.addEventListener('mouseout', () => {
+    insideInfo.style.display = 'none';
+});
+insideInfo.addEventListener('mouseover', () => {
+    insideInfo.style.display = 'block';
+});
+insideInfo.addEventListener('mouseout', () => {
+    insideInfo.style.display = 'none';
+});
+
+// Asignar eventos de clic a los botones
+generateButton.addEventListener('click', generar);
+smallButton.addEventListener('click', function() {
+    mapSizeColumns = 4;
+    mapSizeRows = calculateMapSizeRows(); 
+});
+mediumButton.addEventListener('click', function() {
+    mapSizeColumns = 6;
+    mapSizeRows = calculateMapSizeRows(); 
+});
+largeButton.addEventListener('click', function() {
+    mapSizeColumns = 8;
+    mapSizeRows = calculateMapSizeRows(); 
+});
+document.getElementById("download-btn").addEventListener("click", function() {
+    var element = document.getElementById("map-container");
+    html2canvas(element, {
+        onrendered: function(canvas) {
+        // Convertir el lienzo a una URL de datos
+        var imageData = canvas.toDataURL("image/png");
+        
+        // Crear un enlace temporal para la descarga
+        var downloadLink = document.createElement("a");
+        downloadLink.href = imageData;
+        downloadLink.download = "mapa.png"; // Nombre del archivo de descarga
+        
+        // Hacer clic en el enlace para descargar la imagen
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        }
+    });
+});
+
+function rotarArray(arr, positions) {
     // Función para desplazar un array hacia la derecha en la cantidad de posiciones dadas
     const shiftedArray = arr.slice();
     for (let i = 0; i < positions; i++) {
@@ -149,22 +186,19 @@ function matchesPattern(tile, pattern) {
     return true;
 }
 
-const patternToMatch = [0 , 'x', 'x', 'x', 0, 2];
-const validTiles = [];
-
 function findValidTilesAndUpdatePattern() {
     validTiles.length = 0; // Restablecer validTiles a un array vacío al inicio de la función
     tileSet.forEach(tile => {
-        checkAndShiftTile(tile, patternToMatch, validTiles);
+        verificaryGirarTile(tile, patternToMatch, validTiles);
     });
 }
 
-function getOppositeShift(shiftsArray, index) {
+function conseguirValorVecino(shiftsArray, index) {
     // Ajustar el índice sumando o restando 3
     index = (index + 3) % 6;
     // Retornar el valor del array en el nuevo índice
     const oppositeShift = shiftsArray[index];
-    //console.log(`Valor obtenido en getOppositeShift: ${oppositeShift}`);
+    //console.log(`Valor obtenido en conseguirValorVecino: ${oppositeShift}`);
     return oppositeShift;
 }
 
@@ -174,20 +208,105 @@ function getTileAtPosition(row, col) {
     return modifiedTilesArray.find(tile => tile.fila === row && tile.columna === col);
 }
 
-const mapContainer = document.getElementById('map-container');
-const generateButton = document.getElementById('generate-button');
+function verificaryGirarTile(tile, pattern, validTiles) {
+    const maxShifts = 5;
 
-generateButton.addEventListener('click', generar);
+    for (let shift = 0; shift <= maxShifts; shift++) {
+        const shiftedTile = rotarArray(tile.set, shift);
 
-const maxWidth = 350; // Ancho máximo para las imágenes
-let mapSizeColumns = 6; // Cambia según el número de columnas deseado
-// Cambia mapSizeRows a una función que calcula la mitad de mapSizeColumns
-function calculateMapSizeRows() {
-    return mapSizeColumns / 2;
+        // Verificar si el tile original cumple con el patrón
+        if (matchesPattern(shiftedTile, pattern)) {
+            validTiles.push({
+                tile: tile.nombre,
+                shifts: shift,
+                shiftedTile: shiftedTile,
+                mirror: 0 // No es un espejo
+            });
+        }
+        
+        // Crear el tile espejo solo si no se han encontrado tiles válidos hasta el momento
+    if (validTiles.length === 0) {
+    console.log("Creando tiles espejo"); // Agregar un console log para mostrar cuando se crea el tile espejo
+    const mirroredSet = rotarArray([...tile.set].reverse(), shift);
+
+            // Verificar si el tile espejo cumple con el patrón
+            if (matchesPattern(mirroredSet, pattern)) {
+                validTiles.push({
+                    tile: tile.nombre,
+                    shifts: shift,
+                    shiftedTile: mirroredSet,
+                    mirror: 1 // Es un espejo
+                });
+            }
+        }
+    }
 }
-// Utiliza calculateMapSizeRows() para obtener el número de filas en lugar de una constante
-let mapSizeRows = calculateMapSizeRows();
-const modifiedTilesArray = []; // Array para almacenar los objetos modifiedTile
+
+function updatePattern(index) { 
+    const modifiedTile = modifiedTilesArray[index]; 
+    //console.log(`Fila original: ${modifiedTile.fila}, Columna original: ${modifiedTile.columna}`);
+    // Calcular la fila y columna de la próxima posición donde se colocará el tile
+    const nextRow = modifiedTile.columna === mapSizeColumns ? modifiedTile.fila + 1 : modifiedTile.fila;
+    const nextCol = modifiedTile.columna === mapSizeColumns ? 1 : modifiedTile.columna + 1;
+    //console.log(`Fila próxima: ${nextRow}, Columna próxima: ${nextCol}`);
+
+    // Determinar si la fila es par o impar
+    const isEvenRow = nextRow % 2 === 0;
+    //console.log(`Próxima fila: ${nextRow}`);
+    // Definir las direcciones según si la fila es par o impar
+    const directions = isEvenRow ? [
+        { name: 'norEste2', row: nextRow - 1, col: nextCol },
+        { name: 'este2', row: nextRow, col: nextCol + 1 },
+        { name: 'surEste2', row: nextRow + 1, col: nextCol },
+        { name: 'surOeste2', row: nextRow + 1, col: nextCol - 1 },
+        { name: 'oeste2', row: nextRow, col: nextCol - 1 },
+        { name: 'norOeste2', row: nextRow - 1, col: nextCol - 1 }
+    ] : [
+        { name: 'norEste1', row: nextRow - 1, col: nextCol + 1 },
+        { name: 'este1', row: nextRow, col: nextCol + 1 },
+        { name: 'surEste1', row: nextRow + 1, col: nextCol + 1 },
+        { name: 'surOeste1', row: nextRow + 1, col: nextCol - 1 },
+        { name: 'oeste1', row: nextRow, col: nextCol - 1 },
+        { name: 'norOeste1', row: nextRow - 1, col: nextCol}
+    ];
+
+    let indexPattern = 0; 
+    directions.forEach(direction => {
+        const { name, row, col } = direction;
+        //console.log(`Dirección: ${name}`);
+        //console.log(`Fila modificada: ${row}, Columna modificada: ${col}`);
+        if (row <= 0 || row > mapSizeRows || col <= 0 || col > mapSizeColumns) {
+            patternToMatch[indexPattern] = 0; 
+        } else {
+            const tile = getTileAtPosition(row, col); 
+            //console.log(tile);
+            if (!tile) {
+                patternToMatch[indexPattern] = 'x'; 
+            } else {
+                patternToMatch[indexPattern] = conseguirValorVecino(tile.set, indexPattern);
+                //console.log(tileValue);
+                //console.log(conseguirValorVecino(tile.set, indexPattern)); // Console log agregado aquí
+            }
+        }
+        //console.log(indexPattern);
+        indexPattern++; 
+    });
+}
+
+function generar() {
+    if (contador === 1) {
+        // Si el contador es 1, restablecer todos los valores y luego llamar a loadAllImages
+        modifiedTilesArray.length = 0; // Vacía el array modifiedTilesArray sin asignar un nuevo array
+        mapContainer.innerHTML = ''; // Borra todo el contenido dentro de mapContainer
+        patternToMatch.splice(0, patternToMatch.length, 0 , 'x', 'x', 'x', 0 , 2);
+        // Llama a loadAllImages después de restablecer los valores
+        loadAllImages();
+    } else {
+        // Si el contador no es 1, aumenta su valor en 1 y llama a loadAllImages
+        contador++;
+        loadAllImages();
+    }
+}
 
 function loadAllImages() {
     let index = 0;
@@ -206,8 +325,8 @@ function loadAllImages() {
                 shifts: randomValidTile.shifts,
                 mirror: randomValidTile.mirror,
                 set: randomValidTile.mirror === 1 ? 
-                    shiftArray([...tileSet.find(tile => tile.nombre === randomValidTile.tile).set].reverse(), randomValidTile.shifts) :
-                    shiftArray(tileSet.find(tile => tile.nombre === randomValidTile.tile).set, randomValidTile.shifts),
+                rotarArray([...tileSet.find(tile => tile.nombre === randomValidTile.tile).set].reverse(), randomValidTile.shifts) :
+                rotarArray(tileSet.find(tile => tile.nombre === randomValidTile.tile).set, randomValidTile.shifts),
                 fila: row + 1,
                 columna: col + 1,
             };
@@ -256,121 +375,14 @@ function loadAllImages() {
             index++;
 
             // Después de generar el contenido dentro del contenedor
-const contenido = document.getElementById('map-container');
-const contenidoAncho = contenido.scrollWidth;
-const contenidoAltura = contenido.scrollHeight;
+        const contenido = document.getElementById('map-container');
+        const contenidoAncho = contenido.scrollWidth;
+        const contenidoAltura = contenido.scrollHeight;
 
-// Establecer el ancho y alto del contenedor para que coincida con el contenido
-contenido.style.width = `${contenidoAncho}px`;
-contenido.style.height = `${contenidoAltura}px`;
-contenido.style.paddingBottom = '50px';
+        // Establecer el ancho y alto del contenedor para que coincida con el contenido
+        contenido.style.width = `${contenidoAncho}px`;
+        contenido.style.height = `${contenidoAltura}px`;
+        contenido.style.paddingBottom = '50px';
         }
     }
 }
-
-function updatePattern(index) { 
-    const modifiedTile = modifiedTilesArray[index]; 
-    //console.log(`Fila original: ${modifiedTile.fila}, Columna original: ${modifiedTile.columna}`);
-    // Calcular la fila y columna de la próxima posición donde se colocará el tile
-    const nextRow = modifiedTile.columna === mapSizeColumns ? modifiedTile.fila + 1 : modifiedTile.fila;
-    const nextCol = modifiedTile.columna === mapSizeColumns ? 1 : modifiedTile.columna + 1;
-    //console.log(`Fila próxima: ${nextRow}, Columna próxima: ${nextCol}`);
-
-    // Determinar si la fila es par o impar
-    const isEvenRow = nextRow % 2 === 0;
-    //console.log(`Próxima fila: ${nextRow}`);
-    // Definir las direcciones según si la fila es par o impar
-    const directions = isEvenRow ? [
-        { name: 'norEste2', row: nextRow - 1, col: nextCol },
-        { name: 'este2', row: nextRow, col: nextCol + 1 },
-        { name: 'surEste2', row: nextRow + 1, col: nextCol },
-        { name: 'surOeste2', row: nextRow + 1, col: nextCol - 1 },
-        { name: 'oeste2', row: nextRow, col: nextCol - 1 },
-        { name: 'norOeste2', row: nextRow - 1, col: nextCol - 1 }
-    ] : [
-        { name: 'norEste1', row: nextRow - 1, col: nextCol + 1 },
-        { name: 'este1', row: nextRow, col: nextCol + 1 },
-        { name: 'surEste1', row: nextRow + 1, col: nextCol + 1 },
-        { name: 'surOeste1', row: nextRow + 1, col: nextCol - 1 },
-        { name: 'oeste1', row: nextRow, col: nextCol - 1 },
-        { name: 'norOeste1', row: nextRow - 1, col: nextCol}
-    ];
-
-    let indexPattern = 0; 
-    directions.forEach(direction => {
-        const { name, row, col } = direction;
-        //console.log(`Dirección: ${name}`);
-        //console.log(`Fila modificada: ${row}, Columna modificada: ${col}`);
-        if (row <= 0 || row > mapSizeRows || col <= 0 || col > mapSizeColumns) {
-            patternToMatch[indexPattern] = 0; 
-        } else {
-            const tile = getTileAtPosition(row, col); 
-            //console.log(tile);
-            if (!tile) {
-                patternToMatch[indexPattern] = 'x'; 
-            } else {
-                patternToMatch[indexPattern] = getOppositeShift(tile.set, indexPattern);
-                //console.log(tileValue);
-                //console.log(getOppositeShift(tile.set, indexPattern)); // Console log agregado aquí
-            }
-        }
-        //console.log(indexPattern);
-        indexPattern++; 
-    });
-}
-
-let contador = 0; // Definir un contador global inicializado en 0
-
-function generar() {
-    if (contador === 1) {
-        // Si el contador es 1, restablecer todos los valores y luego llamar a loadAllImages
-        modifiedTilesArray.length = 0; // Vacía el array modifiedTilesArray sin asignar un nuevo array
-        mapContainer.innerHTML = ''; // Borra todo el contenido dentro de mapContainer
-        patternToMatch.splice(0, patternToMatch.length, 0 , 'x', 'x', 'x', 0 , 2);
-        // Llama a loadAllImages después de restablecer los valores
-        loadAllImages();
-    } else {
-        // Si el contador no es 1, aumenta su valor en 1 y llama a loadAllImages
-        contador++;
-        loadAllImages();
-    }
-}
-
-document.getElementById("download-btn").addEventListener("click", function() {
-    var element = document.getElementById("map-container");
-    html2canvas(element, {
-        onrendered: function(canvas) {
-        // Convertir el lienzo a una URL de datos
-        var imageData = canvas.toDataURL("image/png");
-        
-        // Crear un enlace temporal para la descarga
-        var downloadLink = document.createElement("a");
-        downloadLink.href = imageData;
-        downloadLink.download = "mapa.png"; // Nombre del archivo de descarga
-        
-        // Hacer clic en el enlace para descargar la imagen
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        }
-    });
-});
-const smallButton = document.getElementById('small-btn');
-const mediumButton = document.getElementById('medium-btn');
-const largeButton = document.getElementById('large-btn');
-
-// Asignar eventos de clic a los botones
-smallButton.addEventListener('click', function() {
-    mapSizeColumns = 4;
-    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
-});
-
-mediumButton.addEventListener('click', function() {
-    mapSizeColumns = 6;
-    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
-});
-
-largeButton.addEventListener('click', function() {
-    mapSizeColumns = 8;
-    mapSizeRows = calculateMapSizeRows(); // Actualiza mapSizeRows después de cambiar mapSizeColumns
-});

@@ -1,3 +1,39 @@
 #map-container {
     position: relative;
 }
+a{
+    color: #fd7b11;
+}
+header{
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 10px;
+    height: 100px;
+}
+.btn{
+    height: 50%;
+	padding: 15px 30px;
+    border-radius: 5px;
+    border: #db7f34;
+	color: white;
+	top: 50%;
+	left: 50%;
+	vertical-align: middle;
+	font-family: 'Rubik One', sans-serif;
+	text-decoration: none;
+	font-size: 25px;
+	background-color: #db7f34;
+}
+#info{
+    height: 19.9px;
+}
+#insideinfo {
+    display: none;
+    position: absolute;
+    right: 0;
+    color: black;
+    font-family: 'Rubik One', sans-serif;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #db7f34;
+}
