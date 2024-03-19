@@ -24,6 +24,9 @@ header{
 	font-size: 25px;
 	background-color: #db7f34;
 }
+.btn:active{
+    background-color: #553013;
+}
 #info{
     height: 19.9px;
 }
