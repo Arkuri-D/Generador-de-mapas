@@ -39,4 +39,5 @@ header{
     background-color: white;
     border-radius: 5px;
     border: 1px solid #db7f34;
+    z-index: 999;
 }
